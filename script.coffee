@@ -85,8 +85,9 @@ config =
 
 # XXX chrome can't into `{log} = console`
 if console?
-  log = ->
-    console.log arguments...
+  log = (arg) ->
+    #XXX firefox: console.log.apply is not a function
+    console.log arg
 
 # XXX opera cannot into Object.keys
 if not Object.keys

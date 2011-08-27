@@ -1217,7 +1217,6 @@
   };
   qr = {
     init: function() {
-      var iframe;
       g.callbacks.push(qr.node);
       $.bind(window, 'message', qr.message);
       $.bind($('#recaptcha_challenge_field_holder'), 'DOMNodeInserted', qr.captchaNode);
@@ -1233,11 +1232,11 @@
             return 'image/' + type;
         }
       });
-      iframe = $.el('iframe', {
-        name: 'iframe',
-        hidden: true
+      qr.iframe = $.el('iframe', {
+        hidden: true,
+        src: "http://sys.4chan.org/" + g.BOARD + "/src"
       });
-      $.append(d.body, iframe);
+      $.append(d.body, qr.iframe);
       return $('#recaptcha_response_field').id = '';
     },
     attach: function() {
@@ -1305,7 +1304,7 @@
       submitDisabled = $('#com_submit').disabled ? 'disabled' : '';
       THREAD_ID = g.THREAD_ID || $.x('ancestor::div[@class="thread"]/div', link).id;
       qr.challenge = $('#recaptcha_challenge_field').value;
-      html = "      <a id=close title=close>X</a>      <input type=checkbox id=autohide title=autohide>      <div class=move>        <input class=inputtext type=text name=name value='" + name + "' placeholder=Name form=qr_form>        Quick Reply      </div>      <div class=autohide>        <form name=post action=http://sys.4chan.org/" + g.BOARD + "/post method=POST enctype=multipart/form-data target=iframe id=qr_form>          <input type=hidden name=resto value=" + THREAD_ID + ">          <input type=hidden name=recaptcha_challenge_field id=recaptcha_challenge_field>          <input type=hidden name=mode value=regist>          <div><input class=inputtext type=text name=email value='" + email + "' placeholder=E-mail>" + qr.spoiler + "</div>          <div><input class=inputtext type=text name=sub placeholder=Subject><input type=submit value=" + submitValue + " id=com_submit " + submitDisabled + "><label><input type=checkbox id=auto>auto</label></div>          <div><textarea class=inputtext name=com placeholder=Comment></textarea></div>          <div><img src=http://www.google.com/recaptcha/api/image?c=" + qr.challenge + "></div>          <div><input class=inputtext type=text autocomplete=off placeholder=Verification id=dummy><input type=hidden name=recaptcha_response_field id=recaptcha_response_field><span id=captchas>" + ($.get('captchas', []).length) + " captchas</span></div>          <div><input type=file name=upfile accept='" + qr.acceptFiles + "'></div>        </form>        <div id=files></div>        <div><input class=inputtext type=password name=pwd value='" + pwd + "' placeholder=Password form=qr_form maxlength=8><a id=attach>attach another file</a></div>      </div>      <a id=error class=error></a>      ";
+      html = "      <a id=close title=close>X</a>      <input type=checkbox id=autohide title=autohide>      <div class=move>        <input class=inputtext type=text name=name value='" + name + "' placeholder=Name form=qr_form>        Quick Reply      </div>      <div class=autohide>        <form action=http://sys.4chan.org/" + g.BOARD + "/post method=POST enctype=multipart/form-data target=iframe id=qr_form>          <input type=hidden name=resto value=" + THREAD_ID + ">          <input type=hidden name=recaptcha_challenge_field id=recaptcha_challenge_field>          <input type=hidden name=mode value=regist>          <div><input class=inputtext type=text name=email value='" + email + "' placeholder=E-mail>" + qr.spoiler + "</div>          <div><input class=inputtext type=text name=sub placeholder=Subject><input type=submit value=" + submitValue + " id=com_submit " + submitDisabled + "><label><input type=checkbox id=auto>auto</label></div>          <div><textarea class=inputtext name=com placeholder=Comment></textarea></div>          <div><img src=http://www.google.com/recaptcha/api/image?c=" + qr.challenge + "></div>          <div><input class=inputtext type=text autocomplete=off placeholder=Verification id=dummy><input type=hidden name=recaptcha_response_field id=recaptcha_response_field><span id=captchas>" + ($.get('captchas', []).length) + " captchas</span></div>          <div><input type=file name=upfile accept='" + qr.acceptFiles + "'></div>        </form>        <div id=files></div>        <div><input class=inputtext type=password name=pwd value='" + pwd + "' placeholder=Password form=qr_form maxlength=8><a id=attach>attach another file</a></div>      </div>      <a id=error class=error></a>      ";
       qr.el = ui.dialog('qr', {
         top: '0px',
         left: '0px'
@@ -1324,7 +1323,6 @@
     },
     message: function(e) {
       var data, duration, fileCount;
-      $('iframe[name=iframe]').src = 'about:blank';
       fileCount = $('#files', qr.el).childElementCount;
       data = e.data;
       if (data) {
@@ -1441,11 +1439,9 @@
       return $.replace(oldFile, newFile);
     },
     submit: function(e) {
-      var id, msg, op;
+      var data, el, fr, id, msg, op, _i, _len, _ref;
+      e.preventDefault();
       if (msg = qr.postInvalid()) {
-        if (typeof e.preventDefault === "function") {
-          e.preventDefault();
-        }
         alert(msg);
         if (msg === 'You forgot to type in the verification.') {
           $('#dummy', qr.el).focus();
@@ -1463,17 +1459,49 @@
           }
         }
       }
-      if (!e) {
-        this.submit();
-      }
       $('#error', qr.el).textContent = '';
       if (conf['Auto Hide QR']) {
         $('#autohide', qr.el).checked = true;
       }
-      return qr.sage = /sage/i.test($('input[name=email]', this).value);
+      qr.sage = /sage/i.test($('input[name=email]', this).value);
+      data = {};
+      _ref = $$('[name]', qr.el);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        el = _ref[_i];
+        data[el.name] = el.value;
+      }
+      fr = new FileReader();
+      fr.onload = function(e) {
+        data.upfile = e.target.result;
+        return qr.iframe.contentWindow.postMessage(JSON.stringify(data), '*');
+      };
+      return fr.readAsBinaryString($('[name=upfile]', qr.el).files[0]);
+    },
+    sysMessage: function(e) {
+      var bb, data, fd, i, key, l, ui8a, upfile, val, x;
+      data = JSON.parse(e.data);
+      upfile = data.upfile;
+      l = upfile.length;
+      ui8a = new Uint8Array(l);
+      for (i = 0; 0 <= l ? i < l : i > l; 0 <= l ? i++ : i--) {
+        ui8a[i] = upfile.charCodeAt(i);
+      }
+      bb = new MozBlobBuilder();
+      bb.append(ui8a.buffer);
+      data.upfile = bb.getBlob();
+      fd = new FormData();
+      for (key in data) {
+        val = data[key];
+        fd.append(key, val);
+      }
+      x = new XMLHttpRequest();
+      x.open('post', 'post', true);
+      return x.send(fd);
     },
     sys: function() {
       var c, duration, id, noko, recaptcha, sage, search, thread, url, watch, _, _ref, _ref2;
+      $.bind(window, 'message', qr.sysMessage);
+      return;
       if (recaptcha = $('#recaptcha_response_field')) {
         $.bind(recaptcha, 'keydown', Recaptcha.listener);
         return;

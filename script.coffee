@@ -988,10 +988,10 @@ qr =
         else
           'image/' + type
 
-    iframe = $.el 'iframe',
-      name: 'iframe'
+    qr.iframe = $.el 'iframe',
       hidden: true
-    $.append d.body, iframe
+      src: "http://sys.4chan.org/#{g.BOARD}/src"
+    $.append d.body, qr.iframe
 
     #hack - nuke id so it doesn't grab focus when reloading
     $('#recaptcha_response_field').id = ''
@@ -1058,7 +1058,7 @@ qr =
         Quick Reply
       </div>
       <div class=autohide>
-        <form name=post action=http://sys.4chan.org/#{g.BOARD}/post method=POST enctype=multipart/form-data target=iframe id=qr_form>
+        <form action=http://sys.4chan.org/#{g.BOARD}/post method=POST enctype=multipart/form-data target=iframe id=qr_form>
           <input type=hidden name=resto value=#{THREAD_ID}>
           <input type=hidden name=recaptcha_challenge_field id=recaptcha_challenge_field>
           <input type=hidden name=mode value=regist>
@@ -1088,7 +1088,6 @@ qr =
     $.append d.body, qr.el
 
   message: (e) ->
-    $('iframe[name=iframe]').src = 'about:blank'
     fileCount = $('#files', qr.el).childElementCount
 
     {data} = e
@@ -1187,9 +1186,8 @@ qr =
     $.replace oldFile, newFile
 
   submit: (e) ->
-    #XXX `e` won't exist if we're here from `qr.submit.call form`.
+    e.preventDefault()
     if msg = qr.postInvalid()
-      e.preventDefault?()
       alert msg
       if msg is 'You forgot to type in the verification.'
         $('#dummy', qr.el).focus()
@@ -1204,12 +1202,41 @@ qr =
         if $('img.favicon', op).src is Favicon.empty
           watcher.watch op, id
 
-    if !e then @submit()
     $('#error', qr.el).textContent = ''
     $('#autohide', qr.el).checked = true if conf['Auto Hide QR']
     qr.sage = /sage/i.test $('input[name=email]', @).value
 
+    data = {}
+    for el in $$ '[name]', qr.el
+      data[el.name] = el.value
+    fr = new FileReader()
+    fr.onload = (e) ->
+      data.upfile = e.target.result
+      qr.iframe.contentWindow.postMessage JSON.stringify(data), '*'
+    fr.readAsBinaryString $('[name=upfile]', qr.el).files[0]
+
+  sysMessage: (e) ->
+    data = JSON.parse e.data
+    {upfile} = data
+    l = upfile.length
+    ui8a = new Uint8Array l
+    for i in [0...l]
+      ui8a[i] = upfile.charCodeAt i
+    bb = new MozBlobBuilder()
+    bb.append ui8a.buffer
+    data.upfile = bb.getBlob()
+    fd = new FormData()
+    for key, val of data
+      fd.append key, val
+    x = new XMLHttpRequest()
+    x.open 'post', 'post', true
+    x.send fd
+
   sys: ->
+    $.bind window, 'message', qr.sysMessage
+
+    return
+
     if recaptcha = $ '#recaptcha_response_field' #post reporting
       $.bind recaptcha, 'keydown', Recaptcha.listener
       return

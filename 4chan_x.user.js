@@ -6,7 +6,6 @@
 // @license        MIT; http://en.wikipedia.org/wiki/Mit_license
 // @include        http://boards.4chan.org/*
 // @include        http://sys.4chan.org/*
-// @updateURL      https://github.com/aeosynth/4chan-x/raw/master/4chan_x.user.js
 // ==/UserScript==
 
 /* LICENSE
@@ -1108,7 +1107,7 @@
       });
       $.append(hidingul, li);
       $.bind($('button', li), 'click', options.clearHidden);
-      $.bind($('textarea[name=flavors]', dialog), 'change', $.cb.value);
+      $.bind($('#flavors', dialog), 'change', $.cb.value);
       $.bind($('input[name=time]', dialog), 'keyup', options.time);
       _ref2 = $$('#keybinds input', dialog);
       for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
@@ -1775,7 +1774,7 @@
           updater.timer.textContent = '';
           updater.count.textContent = 404;
           updater.count.className = 'error';
-          window.clearInterval(updater.intervalID);
+          clearTimeout(updater.timeoutID);
           _ref = $$('#com_submit');
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             input = _ref[_i];
@@ -2408,20 +2407,15 @@
           $.after(span, a);
           $.after(span, $.tn(' '));
         }
-        return $.bind(a, 'click', reportButton.cb.report);
+        return $.bind(a, 'click', reportButton.report);
       });
     },
-    cb: {
-      report: function(e) {
-        return reportButton.report(this);
-      }
-    },
-    report: function(target) {
-      var input;
-      input = $('input', target.parentNode);
-      input.click();
-      $('input[value="Report"]').click();
-      return input.click();
+    report: function() {
+      var id, set, url;
+      url = "http://sys.4chan.org/" + g.BOARD + "/imgboard.php?mode=report&no=" + this.previousElementSibling.childNodes[1].textContent;
+      id = "" + NAMESPACE + "popup";
+      set = "toolbar=0,scrollbars=0,location=0,status=1,menubar=0,resizable=1,width=685,height=200";
+      return window.open(url, id, set);
     }
   };
   threadStats = {

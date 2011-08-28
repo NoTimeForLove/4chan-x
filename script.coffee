@@ -1637,6 +1637,7 @@ sauce =
           link = $.el 'a',
             textContent: sauce.names[i]
             href: prefix + suffix
+            target: '_blank'
           $.append span, $.tn(' '), link
 
 revealSpoilers =

@@ -379,10 +379,10 @@
       return el.hidden = false;
     },
     addClass: function(el, className) {
-      return el.className += ' ' + className;
+      return el.classList.add(className);
     },
     removeClass: function(el, className) {
-      return el.className = el.className.replace(' ' + className, '');
+      return el.classList.remove(className);
     },
     rm: function(el) {
       return el.parentNode.removeChild(el);
@@ -1076,7 +1076,7 @@
       var arr, checked, description, dialog, hiddenNum, hiddenThreads, hidingul, html, input, key, li, main, obj, overlay, ul, _i, _len, _ref, _ref2;
       hiddenThreads = $.get("hiddenThreads/" + g.BOARD + "/", {});
       hiddenNum = Object.keys(g.hiddenReplies).length + Object.keys(hiddenThreads).length;
-      html = "      <div class='reply dialog'>        <div id=optionsbar>          <div id=floaty>            <label for=main_tab>main</label> | <label for=flavors_tab>sauce</label> | <label for=rice_tab>rice</label> | <label for=keybinds_tab>keybinds</label>          </div>          <div id=credits>            <a href=http://aeosynth.github.com/4chan-x/>4chan X</a> |            <a href=http://chat.now.im/x/aeos>support throd</a> |            <a href=https://github.com/aeosynth/4chan-x/issues>github</a> |            <a href=https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=2DBVZBUAM4DHC&lc=US&item_name=Aeosynth&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted>donate</a>          </div>        </div>        <hr>        <div id=content>          <input type=radio name=tab hidden id=main_tab checked>          <div id=main></div>          <input type=radio name=tab hidden id=flavors_tab>          <textarea name=flavors id=flavors>" + conf['flavors'] + "</textarea>          <input type=radio name=tab hidden id=rice_tab>          <div id=rice>            <div><input type=text name=backlink value='" + conf['backlink'] + "'> : <span id=backlinkPreview></span></div>            <div><input type=text name=time value='" + conf['time'] + "'> : <span id=timePreview></span></div>            <div>Supported <a href=http://en.wikipedia.org/wiki/Date_%28Unix%29#Formatting>format specifiers</a>:              <ul>                <li>Day: %a, %A, %d, %e</li>                <li>Month: %m, %b, %B</li>                <li>Year: %y, %Y</li>                <li>Hour: %k, %H, %l (lowercase L), %I (uppercase i)</li>                <li>Month: %M, %p, %P</li>              </ul>            </div>          </div>          <input type=radio name=tab hidden id=keybinds_tab>          <div id=keybinds>            <table>              <tbody>                <tr><th>Actions</th><th>Keybinds</th></tr>                <tr><td>Close Options or QR</td><td><input type=text name=close></td></tr>                <tr><td>Quick spoiler</td><td><input type=text name=spoiler></td></tr>                <tr><td>Open QR with post number inserted</td><td><input type=text name=openQR></td></tr>                <tr><td>Open QR without post number inserted</td><td><input type=text name=openEmptyQR></td></tr>                <tr><td>Submit post</td><td><input type=text name=submit></td></tr>                <tr><td>Select next reply</td><td><input type=text name=nextReply ></td></tr>                <tr><td>Select previous reply</td><td><input type=text name=previousReply></td></tr>                <tr><td>See next thread</td><td><input type=text name=nextThread></td></tr>                <tr><td>See previous thread</td><td><input type=text name=previousThread></td></tr>                <tr><td>Jump to the next page</td><td><input type=text name=nextPage></td></tr>                <tr><td>Jump to the previous page</td><td><input type=text name=previousPage></td></tr>                <tr><td>Jump to page 0</td><td><input type=text name=zero></td></tr>                <tr><td>Open thread in current tab</td><td><input type=text name=openThread></td></tr>                <tr><td>Open thread in new tab</td><td><input type=text name=openThreadTab></td></tr>                <tr><td>Expand thread</td><td><input type=text name=expandThread></td></tr>                <tr><td>Watch thread</td><td><input type=text name=watch></td></tr>                <tr><td>Hide thread</td><td><input type=text name=hide></td></tr>                <tr><td>Expand selected image</td><td><input type=text name=expandImages></td></tr>                <tr><td>Expand all images</td><td><input type=text name=expandAllImages></td></tr>                <tr><td>Update now</td><td><input type=text name=update></td></tr>                <tr><td>Reset the unread count to 0</td><td><input type=text name=unreadCountTo0></td></tr>              </tbody>            </table>          </div>        </div>      </div>    ";
+      html = "      <div class='reply dialog'>        <div id=optionsbar>          <div id=floaty>            <label for=main_tab>main</label> | <label for=flavors_tab>sauce</label> | <label for=rice_tab>rice</label> | <label for=keybinds_tab>keybinds</label>          </div>          <div id=credits>            <a href=http://aeosynth.github.com/4chan-x/>4chan X</a> |            <a href=http://chat.now.im/x/aeos>support throd</a> |            <a href=https://github.com/aeosynth/4chan-x/issues>github</a> |            <a href=https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=2DBVZBUAM4DHC&lc=US&item_name=Aeosynth&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted>donate</a>          </div>        </div>        <hr>        <div id=content>          <input type=radio name=tab hidden id=main_tab checked>          <div id=main></div>          <input type=radio name=tab hidden id=flavors_tab>          <textarea name=flavors id=flavors>" + conf['flavors'] + "</textarea>          <input type=radio name=tab hidden id=rice_tab>          <div id=rice>            <div><input type=text name=backlink value='" + conf['backlink'] + "'> : <span id=backlinkPreview></span></div>            <div><input type=text name=time value='" + conf['time'] + "'> : <span id=timePreview></span></div>            <div>Supported <a href=http://en.wikipedia.org/wiki/Date_%28Unix%29#Formatting>format specifiers</a>:              <ul>                <li>Day: %a, %A, %d, %e</li>                <li>Month: %m, %b, %B</li>                <li>Year: %y</li>                <li>Hour: %k, %H, %l (lowercase L), %I (uppercase i)</li>                <li>Month: %M, %p, %P</li>              </ul>            </div>          </div>          <input type=radio name=tab hidden id=keybinds_tab>          <div id=keybinds>            <table>              <tbody>                <tr><th>Actions</th><th>Keybinds</th></tr>                <tr><td>Close Options or QR</td><td><input type=text name=close></td></tr>                <tr><td>Quick spoiler</td><td><input type=text name=spoiler></td></tr>                <tr><td>Open QR with post number inserted</td><td><input type=text name=openQR></td></tr>                <tr><td>Open QR without post number inserted</td><td><input type=text name=openEmptyQR></td></tr>                <tr><td>Submit post</td><td><input type=text name=submit></td></tr>                <tr><td>Select next reply</td><td><input type=text name=nextReply ></td></tr>                <tr><td>Select previous reply</td><td><input type=text name=previousReply></td></tr>                <tr><td>See next thread</td><td><input type=text name=nextThread></td></tr>                <tr><td>See previous thread</td><td><input type=text name=previousThread></td></tr>                <tr><td>Jump to the next page</td><td><input type=text name=nextPage></td></tr>                <tr><td>Jump to the previous page</td><td><input type=text name=previousPage></td></tr>                <tr><td>Jump to page 0</td><td><input type=text name=zero></td></tr>                <tr><td>Open thread in current tab</td><td><input type=text name=openThread></td></tr>                <tr><td>Open thread in new tab</td><td><input type=text name=openThreadTab></td></tr>                <tr><td>Expand thread</td><td><input type=text name=expandThread></td></tr>                <tr><td>Watch thread</td><td><input type=text name=watch></td></tr>                <tr><td>Hide thread</td><td><input type=text name=hide></td></tr>                <tr><td>Expand selected image</td><td><input type=text name=expandImages></td></tr>                <tr><td>Expand all images</td><td><input type=text name=expandAllImages></td></tr>                <tr><td>Update now</td><td><input type=text name=update></td></tr>                <tr><td>Reset the unread count to 0</td><td><input type=text name=unreadCountTo0></td></tr>              </tbody>            </table>          </div>        </div>      </div>    ";
       dialog = $.el('div', {
         id: 'options',
         innerHTML: html
@@ -1685,7 +1685,7 @@
       }
     },
     toggle: function(thread) {
-      if (thread.className.indexOf('stub') !== -1 || thread.hidden) {
+      if (thread.classList.contains('stub') || thread.hidden) {
         return threadHiding.show(thread);
       } else {
         return threadHiding.hide(thread);
@@ -2157,9 +2157,6 @@
       },
       y: function() {
         return Time.date.getFullYear() - 2000;
-      },
-      Y: function() {
-        return Time.date.getFullYear();
       }
     }
   };
@@ -2184,6 +2181,9 @@
   };
   quoteBacklink = {
     init: function() {
+      var format;
+      format = conf['backlink'].replace(/%id/, "' + id + '");
+      quoteBacklink.funk = Function('id', "return'" + format + "'");
       return g.callbacks.push(function(root) {
         var container, el, id, link, qid, quote, quotes, _i, _len, _ref, _results;
         if (/inline/.test(root.className)) {
@@ -2210,7 +2210,7 @@
           link = $.el('a', {
             href: "#" + id,
             className: 'backlink',
-            textContent: conf['backlink'].replace(/%id/, id)
+            textContent: quoteBacklink.funk(id)
           });
           if (conf['Quote Preview']) {
             $.bind(link, 'mouseover', quotePreview.mouseover);
@@ -2539,11 +2539,11 @@
   };
   Favicon = {
     dead: 'data:image/gif;base64,R0lGODlhEAAQAKECAAAAAP8AAP///////yH5BAEKAAIALAAAAAAQABAAAAIvlI+pq+D9DAgUoFkPDlbs7lFZKIJOJJ3MyraoB14jFpOcVMpzrnF3OKlZYsMWowAAOw==',
-    deadHalo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABF0lEQVQ4jZ2SgW7DIAxEUWiylbULAUKaTNP+/ys7O3vpaBQ0aUgnkH13MraNMcYKWsGr4MzdCU6CBpyIlZwW7Zp4E3hBEAyCK8QOnIkNcDwazRmnwXtxxnG8WWuVeAFeYyUHI9WadyK/kJNSmpUkRknfRxzVqkEvWCqEMec8VXIL2oMK/jLYVaDNiPfdOfzCcw8iWvNCh5NgprQbhB5EYguchEa16zwdo8kQpwODiVyG69A+DHQsc1GiClLTNLn8QgjhQ79VGnSU89ysH5NZBfs4/blui6RrOVRG9em9/6rkBrTrmoZ/GAS0q4t/kIpbmxZjXCo5v1XQMs+wbRh3okxF2uUCmrWJlmY4NqvnvhBzvMucQ2O/AfDALFHq2FW+AAAAAElFTkSuQmCC',
+    deadHalo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABIUlEQVQ4jZ2ScWuDMBDFgw4pIkU0WsoQkWAYIkXZH4N9/+/V3dmfXSrKYIFHwt17j8vdGWNMIkgFuaDgzgQnwRs4EQs5KdolUQtagRN0givEDBTEOjgtGs0Zq8F7cKqqusVxrMQLaDUWcjBSrXkn8gs51tpJSWLk9b3HUa0aNIL5gPBR1/V4kJvR7lTwl8GmAm1Gf9+c3S+89qBHa8502AsmSrtBaEBPbIbj0ah2madlNAPEccdgJDfAtWifBjqWKShRBT6KoiH8QlEUn/qt0CCjnNdmPUwmFWzj9Oe6LpKuZXcwqq88z78Pch3aZU3dPwwc2sWlfZKCW5tWluV8kGvXClLm6dYN4/aUqfCbnEOzNDGhGZbNargvxCzvMGfRJD8UaDVvgkzo6QAAAABJRU5ErkJggg==',
     "default": ((_ref = $('link[rel="shortcut icon"]', d.head)) != null ? _ref.href : void 0) || '',
     empty: 'data:image/gif;base64,R0lGODlhEAAQAJEAAAAAAP///9vb2////yH5BAEAAAMALAAAAAAQABAAAAIvnI+pq+D9DBAUoFkPFnbs7lFZKIJOJJ3MyraoB14jFpOcVMpzrnF3OKlZYsMWowAAOw==',
-    haloSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABBElEQVQ4jZ2SAW6DMAxFowHtmtECIW0AaVfYdXegHqy1o5cqyogqDekpYP9vGTvGGNMInfApnDgPQit8QEss13R4Y+JLGAUnTMIZ4QFOxCY0Ix7NGavBR/bI9w1RD/p+KzQOr7lo4Of3/gJBQKSEiuaiBQZhqwiuSiW34f3bwbsCZQc6jPlRPHu/UORnvObIhL2w0tqCYICZ2IbG41Fv3KdNk0YYdgoEcmlDFu+rgLa6Fr/gIWTxNVthly7SuVxVJl534gFPvEh6LafKqr6VSm7CG6+p+0cBhzdWGZMoPxnaUsmNqYOOfbp0wzg9bSq+yDk8cYgNw7DcrIGzJ2Z5z3MWT/MEQc89+KdYnT8AAAAASUVORK5CYII=',
-    haloNSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABBElEQVQ4jZ2SAW6DMAxFowHtmtECIW0AaafYnXba3qm1o5cqyogqDekpYP9vGTvGGNMInfApnDgPQit8QEss13R4Y+JLGAUnTMIZ4QFOxCY0Ix7NGavBR/bI9w1RD/p+KzQOr7lo4Pf+8wJBQKSEiuaiBQZhqwiuSiW34f3bwbsCZQc6jPlRPHu/UORnvObIhL2w0tqCYICZ2IbG41Fv3KdNk0YYdgoEcmlDFu+rgLa6Fr/gIWTxNVthly7SuVxVJl534gFPvEh6LafKqr6VSm7CG6+p+0cBhzdWGZMoPxnaUsmNqYOOfbp0wzg9bSq+yDk8cYgNw7DcrIGzJ2Z5z3MWT/MErJI4gFNYYkEAAAAASUVORK5CYII=',
+    haloSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCElEQVQ4jZ2S4crCMAxF+0OGDJEPKYrIGKOsiJSx/fJRfSAfTJNyKqXfiuDg0C25N2RJjTGmEVrhTzhw7oStsIEtsVzT4o2Jo9ALThiEM8IdHIgNaHo8mjNWg6/ske8bohPo+63QOLzmooHp8fyAICBSQkVz0QKdsFQEV6WSW/D+7+BbgbIDHcb4Kp61XyjyI16zZ8JemGltQtDBSGxB4/GoN+7TpkkjDCsFArm0IYv3U0BbnYtf8BCy+JytsE0X6VyuKhPPK/GAJ14kvZZDZVV3pZIb8MZr6n4o4PDGKn0S5SdDmyq5PnXQsk+Xbhinp03FFzmHJw6xYRiWm9VxnohZ3vOcxdO8ARmXRvbWdtzQAAAAAElFTkSuQmCC',
+    haloNSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4jZ2S0WrDMAxF/TBCCKWMYhZKCSGYmFJMSNjD/mhf239qJXNcjBdTWODgRLpXKJKNMaYROuFTOHEehFb4gJZYrunwxsSXMApOmIQzwgOciE1oRjyaM1aDj+yR7xuiHvT9VmgcXnPRwO/9+wWCgEgJFc1FCwzCVhFclUpuw/u3g3cFyg50GPOjePZ+ocjPeM2RCXthpbUFwQAzsQ2Nx6PeuE+bJo0w7BQI5NKGLN5XAW11LX7BQ8jia7bCLl2kc7mqTLzuxAOeeJH0Wk6VVf0oldyEN15T948CDm+sMiZRfjK0pZIbUwcd+3TphnF62lR8kXN44hAbhmG5WQNnT8zynucsnuYJhFpBfkMzqD4AAAAASUVORK5CYII=',
     update: function() {
       var clone, favicon, href, l;
       l = unread.replies.length;
@@ -3140,7 +3140,7 @@
       }\
       #qr textarea {\
         width: 100%;\
-        height: 120px;\
+        height: 125px;\
       }\
       #qr #close, #qr #autohide {\
         float: right;\

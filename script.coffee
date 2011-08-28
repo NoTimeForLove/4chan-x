@@ -259,9 +259,9 @@ $.extend $,
   show: (el) ->
     el.hidden = false
   addClass: (el, className) ->
-    el.className += ' ' + className
+    el.classList.add className
   removeClass: (el, className) ->
-    el.className = el.className.replace ' ' + className, ''
+    el.classList.remove className
   rm: (el) ->
     el.parentNode.removeChild el
   append: (parent, children...) ->
@@ -819,7 +819,7 @@ options =
               <ul>
                 <li>Day: %a, %A, %d, %e</li>
                 <li>Month: %m, %b, %B</li>
-                <li>Year: %y, %Y</li>
+                <li>Year: %y</li>
                 <li>Hour: %k, %H, %l (lowercase L), %I (uppercase i)</li>
                 <li>Month: %M, %p, %P</li>
               </ul>
@@ -1363,7 +1363,7 @@ threadHiding =
       threadHiding.show thread
 
   toggle: (thread) ->
-    if thread.className.indexOf('stub') != -1 or thread.hidden
+    if thread.classList.contains('stub') or thread.hidden
       threadHiding.show thread
     else
       threadHiding.hide thread
@@ -1713,7 +1713,6 @@ Time =
     p: -> if Time.date.getHours() < 12 then 'AM' else 'PM'
     P: -> if Time.date.getHours() < 12 then 'am' else 'pm'
     y: -> Time.date.getFullYear() - 2000
-    Y: -> Time.date.getFullYear()
 
 getTitle = (thread) ->
   el = $ 'span.filetitle', thread
@@ -1730,6 +1729,8 @@ titlePost =
 
 quoteBacklink =
   init: ->
+    format = conf['backlink'].replace /%id/, "' + id + '"
+    quoteBacklink.funk = Function 'id', "return'#{format}'"
     g.callbacks.push (root) ->
       return if /inline/.test root.className
       # op or reply
@@ -1747,7 +1748,7 @@ quoteBacklink =
         link = $.el 'a',
           href: "##{id}"
           className: 'backlink'
-          textContent: conf['backlink'].replace /%id/, id
+          textContent: quoteBacklink.funk id
         if conf['Quote Preview']
           $.bind link, 'mouseover', quotePreview.mouseover
           $.bind link, 'mousemove', ui.hover
@@ -1955,11 +1956,11 @@ unread =
 
 Favicon =
   dead: 'data:image/gif;base64,R0lGODlhEAAQAKECAAAAAP8AAP///////yH5BAEKAAIALAAAAAAQABAAAAIvlI+pq+D9DAgUoFkPDlbs7lFZKIJOJJ3MyraoB14jFpOcVMpzrnF3OKlZYsMWowAAOw=='
-  deadHalo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABF0lEQVQ4jZ2SgW7DIAxEUWiylbULAUKaTNP+/ys7O3vpaBQ0aUgnkH13MraNMcYKWsGr4MzdCU6CBpyIlZwW7Zp4E3hBEAyCK8QOnIkNcDwazRmnwXtxxnG8WWuVeAFeYyUHI9WadyK/kJNSmpUkRknfRxzVqkEvWCqEMec8VXIL2oMK/jLYVaDNiPfdOfzCcw8iWvNCh5NgprQbhB5EYguchEa16zwdo8kQpwODiVyG69A+DHQsc1GiClLTNLn8QgjhQ79VGnSU89ysH5NZBfs4/blui6RrOVRG9em9/6rkBrTrmoZ/GAS0q4t/kIpbmxZjXCo5v1XQMs+wbRh3okxF2uUCmrWJlmY4NqvnvhBzvMucQ2O/AfDALFHq2FW+AAAAAElFTkSuQmCC'
+  deadHalo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABIUlEQVQ4jZ2ScWuDMBDFgw4pIkU0WsoQkWAYIkXZH4N9/+/V3dmfXSrKYIFHwt17j8vdGWNMIkgFuaDgzgQnwRs4EQs5KdolUQtagRN0givEDBTEOjgtGs0Zq8F7cKqqusVxrMQLaDUWcjBSrXkn8gs51tpJSWLk9b3HUa0aNIL5gPBR1/V4kJvR7lTwl8GmAm1Gf9+c3S+89qBHa8502AsmSrtBaEBPbIbj0ah2madlNAPEccdgJDfAtWifBjqWKShRBT6KoiH8QlEUn/qt0CCjnNdmPUwmFWzj9Oe6LpKuZXcwqq88z78Pch3aZU3dPwwc2sWlfZKCW5tWluV8kGvXClLm6dYN4/aUqfCbnEOzNDGhGZbNargvxCzvMGfRJD8UaDVvgkzo6QAAAABJRU5ErkJggg=='
   default: $('link[rel="shortcut icon"]', d.head)?.href or '' #no favicon in `post successful` page
   empty: 'data:image/gif;base64,R0lGODlhEAAQAJEAAAAAAP///9vb2////yH5BAEAAAMALAAAAAAQABAAAAIvnI+pq+D9DBAUoFkPFnbs7lFZKIJOJJ3MyraoB14jFpOcVMpzrnF3OKlZYsMWowAAOw=='
-  haloSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABBElEQVQ4jZ2SAW6DMAxFowHtmtECIW0AaVfYdXegHqy1o5cqyogqDekpYP9vGTvGGNMInfApnDgPQit8QEss13R4Y+JLGAUnTMIZ4QFOxCY0Ix7NGavBR/bI9w1RD/p+KzQOr7lo4Of3/gJBQKSEiuaiBQZhqwiuSiW34f3bwbsCZQc6jPlRPHu/UORnvObIhL2w0tqCYICZ2IbG41Fv3KdNk0YYdgoEcmlDFu+rgLa6Fr/gIWTxNVthly7SuVxVJl534gFPvEh6LafKqr6VSm7CG6+p+0cBhzdWGZMoPxnaUsmNqYOOfbp0wzg9bSq+yDk8cYgNw7DcrIGzJ2Z5z3MWT/MEQc89+KdYnT8AAAAASUVORK5CYII='
-  haloNSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABBElEQVQ4jZ2SAW6DMAxFowHtmtECIW0AaafYnXba3qm1o5cqyogqDekpYP9vGTvGGNMInfApnDgPQit8QEss13R4Y+JLGAUnTMIZ4QFOxCY0Ix7NGavBR/bI9w1RD/p+KzQOr7lo4Pf+8wJBQKSEiuaiBQZhqwiuSiW34f3bwbsCZQc6jPlRPHu/UORnvObIhL2w0tqCYICZ2IbG41Fv3KdNk0YYdgoEcmlDFu+rgLa6Fr/gIWTxNVthly7SuVxVJl534gFPvEh6LafKqr6VSm7CG6+p+0cBhzdWGZMoPxnaUsmNqYOOfbp0wzg9bSq+yDk8cYgNw7DcrIGzJ2Z5z3MWT/MErJI4gFNYYkEAAAAASUVORK5CYII='
+  haloSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCElEQVQ4jZ2S4crCMAxF+0OGDJEPKYrIGKOsiJSx/fJRfSAfTJNyKqXfiuDg0C25N2RJjTGmEVrhTzhw7oStsIEtsVzT4o2Jo9ALThiEM8IdHIgNaHo8mjNWg6/ske8bohPo+63QOLzmooHp8fyAICBSQkVz0QKdsFQEV6WSW/D+7+BbgbIDHcb4Kp61XyjyI16zZ8JemGltQtDBSGxB4/GoN+7TpkkjDCsFArm0IYv3U0BbnYtf8BCy+JytsE0X6VyuKhPPK/GAJ14kvZZDZVV3pZIb8MZr6n4o4PDGKn0S5SdDmyq5PnXQsk+Xbhinp03FFzmHJw6xYRiWm9VxnohZ3vOcxdO8ARmXRvbWdtzQAAAAAElFTkSuQmCC'
+  haloNSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4jZ2S0WrDMAxF/TBCCKWMYhZKCSGYmFJMSNjD/mhf239qJXNcjBdTWODgRLpXKJKNMaYROuFTOHEehFb4gJZYrunwxsSXMApOmIQzwgOciE1oRjyaM1aDj+yR7xuiHvT9VmgcXnPRwO/9+wWCgEgJFc1FCwzCVhFclUpuw/u3g3cFyg50GPOjePZ+ocjPeM2RCXthpbUFwQAzsQ2Nx6PeuE+bJo0w7BQI5NKGLN5XAW11LX7BQ8jia7bCLl2kc7mqTLzuxAOeeJH0Wk6VVf0oldyEN15T948CDm+sMiZRfjK0pZIbUwcd+3TphnF62lR8kXN44hAbhmG5WQNnT8zynucsnuYJhFpBfkMzqD4AAAAASUVORK5CYII='
 
   update: ->
     l = unread.replies.length
@@ -2498,7 +2499,7 @@ main =
       }
       #qr textarea {
         width: 100%;
-        height: 120px;
+        height: 125px;
       }
       #qr #close, #qr #autohide {
         float: right;

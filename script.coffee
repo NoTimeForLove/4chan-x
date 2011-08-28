@@ -977,13 +977,28 @@ qr =
         else
           'image/' + type
 
-    qr.iframe = $.el 'iframe',
+    iframe = $.el 'iframe',
+      id: 'iframe'
       hidden: true
       src: "http://sys.4chan.org/#{g.BOARD}/src"
-    $.append d.body, qr.iframe
+    $.append d.body, iframe
 
     #hack - nuke id so it doesn't grab focus when reloading
     $('#recaptcha_response_field').id = ''
+
+    $.bind window, 'message', (e) ->
+      {data, origin} = e
+      return unless origin is 'http://sys.4chan.org'
+      qr.receive data
+
+    $.globalEval ->
+      window.addEventListener 'message',
+        ((e) ->
+          {data, origin} = e
+          return unless origin is 'http://boards.4chan.org'
+          document.getElementById('iframe').contentWindow.postMessage data, '*'
+        ),
+        false
 
   attach: ->
     fileDiv = $.el 'div', innerHTML: "<input type=file name=upfile accept='#{qr.acceptFiles}'><a>X</a>"
@@ -1076,19 +1091,22 @@ qr =
 
     $.append d.body, qr.el
 
-  message: (e) ->
+  receive: (innerHTML) ->
     fileCount = $('#files', qr.el).childElementCount
-
-    {data} = e
-    if data # error message
-      data = JSON.parse data
-      $.extend $('#error', qr.el), data
+    body = $.el 'body', { innerHTML }
+    node = $('table font b', body)?.firstChild
+    if node #error message
+      tc = node.textContent
+      {href} = node
+      $.extend $('#error', qr.el),
+        textContent: tc
+        href: href
       $('#recaptcha_response_field', qr.el).value = ''
       $('#autohide', qr.el).checked = false
-      if data.textContent is 'You seem to have mistyped the verification.'
+      if tc is 'You seem to have mistyped the verification.'
         setTimeout qr.autoPost, 1000
-      else if data.textContent is 'Error: Duplicate file entry detected.' and fileCount
-        $('textarea', qr.el).value += '\n' + data.textContent + ' ' + data.href
+      else if tc is 'Error: Duplicate file entry detected.' and fileCount
+        $('textarea', qr.el).value += '\n' + data.textContent + ' ' + href
         qr.attachNext()
         setTimeout qr.autoPost, 1000
       return
@@ -1198,31 +1216,44 @@ qr =
     data = {}
     for el in $$ '[name]', qr.el
       data[el.name] = el.value
+    unless file = $('[name=upfile]', qr.el).files[0]
+      postMessage data, '*'
+      return
+
     fr = new FileReader()
     fr.onload = (e) ->
       data.upfile = e.target.result
-      qr.iframe.contentWindow.postMessage JSON.stringify(data), '*'
-    fr.readAsBinaryString $('[name=upfile]', qr.el).files[0]
+      postMessage data, '*'
+    fr.readAsBinaryString file
 
-  sysMessage: (e) ->
-    data = JSON.parse e.data
+  sysSend: (data) ->
     {upfile} = data
-    l = upfile.length
-    ui8a = new Uint8Array l
-    for i in [0...l]
-      ui8a[i] = upfile.charCodeAt i
-    bb = new MozBlobBuilder()
-    bb.append ui8a.buffer
-    data.upfile = bb.getBlob()
+    if upfile
+      l = upfile.length
+      ui8a = new Uint8Array l
+      for i in [0...l]
+        ui8a[i] = upfile.charCodeAt i
+      bb = new MozBlobBuilder()
+      bb.append ui8a.buffer
+      data.upfile = bb.getBlob()
     fd = new FormData()
     for key, val of data
       fd.append key, val
     x = new XMLHttpRequest()
+    x.onload = (e) -> postMessage @responseText, '*'
     x.open 'post', 'post', true
     x.send fd
 
   sys: ->
-    $.bind window, 'message', qr.sysMessage
+    unsafeWindow.send = qr.sysSend
+    $.globalEval ->
+      window.addEventListener 'message', ((e) ->
+        {data, origin} = e
+        if origin is 'http://boards.4chan.org' #send
+          send data
+        else
+          parent.postMessage data, '*'
+        ), false
 
     return
 

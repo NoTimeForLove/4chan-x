@@ -1224,6 +1224,7 @@
   };
   qr = {
     init: function() {
+      var iframe;
       g.callbacks.push(qr.node);
       $.bind(window, 'message', qr.message);
       $.bind($('#recaptcha_challenge_field_holder'), 'DOMNodeInserted', qr.captchaNode);
@@ -1239,12 +1240,31 @@
             return 'image/' + type;
         }
       });
-      qr.iframe = $.el('iframe', {
+      iframe = $.el('iframe', {
+        id: 'iframe',
         hidden: true,
         src: "http://sys.4chan.org/" + g.BOARD + "/src"
       });
-      $.append(d.body, qr.iframe);
-      return $('#recaptcha_response_field').id = '';
+      $.append(d.body, iframe);
+      $('#recaptcha_response_field').id = '';
+      $.bind(window, 'message', function(e) {
+        var data, origin;
+        data = e.data, origin = e.origin;
+        if (origin !== 'http://sys.4chan.org') {
+          return;
+        }
+        return qr.receive(data);
+      });
+      return $.globalEval(function() {
+        return window.addEventListener('message', (function(e) {
+          var data, origin;
+          data = e.data, origin = e.origin;
+          if (origin !== 'http://boards.4chan.org') {
+            return;
+          }
+          return document.getElementById('iframe').contentWindow.postMessage(data, '*');
+        }), false);
+      });
     },
     attach: function() {
       var fileDiv;
@@ -1328,19 +1348,26 @@
       $.bind($('#dummy', qr.el), 'keydown', qr.captchaKeydown);
       return $.append(d.body, qr.el);
     },
-    message: function(e) {
-      var data, duration, fileCount;
+    receive: function(innerHTML) {
+      var body, duration, fileCount, href, node, tc, _ref;
       fileCount = $('#files', qr.el).childElementCount;
-      data = e.data;
-      if (data) {
-        data = JSON.parse(data);
-        $.extend($('#error', qr.el), data);
+      body = $.el('body', {
+        innerHTML: innerHTML
+      });
+      node = (_ref = $('table font b', body)) != null ? _ref.firstChild : void 0;
+      if (node) {
+        tc = node.textContent;
+        href = node.href;
+        $.extend($('#error', qr.el), {
+          textContent: tc,
+          href: href
+        });
         $('#recaptcha_response_field', qr.el).value = '';
         $('#autohide', qr.el).checked = false;
-        if (data.textContent === 'You seem to have mistyped the verification.') {
+        if (tc === 'You seem to have mistyped the verification.') {
           setTimeout(qr.autoPost, 1000);
-        } else if (data.textContent === 'Error: Duplicate file entry detected.' && fileCount) {
-          $('textarea', qr.el).value += '\n' + data.textContent + ' ' + data.href;
+        } else if (tc === 'Error: Duplicate file entry detected.' && fileCount) {
+          $('textarea', qr.el).value += '\n' + data.textContent + ' ' + href;
           qr.attachNext();
           setTimeout(qr.autoPost, 1000);
         }
@@ -1446,7 +1473,7 @@
       return $.replace(oldFile, newFile);
     },
     submit: function(e) {
-      var data, el, fr, id, msg, op, _i, _len, _ref;
+      var data, el, file, fr, id, msg, op, _i, _len, _ref;
       e.preventDefault();
       if (msg = qr.postInvalid()) {
         alert(msg);
@@ -1477,37 +1504,56 @@
         el = _ref[_i];
         data[el.name] = el.value;
       }
+      if (!(file = $('[name=upfile]', qr.el).files[0])) {
+        postMessage(data, '*');
+        return;
+      }
       fr = new FileReader();
       fr.onload = function(e) {
         data.upfile = e.target.result;
-        return qr.iframe.contentWindow.postMessage(JSON.stringify(data), '*');
+        return postMessage(data, '*');
       };
-      return fr.readAsBinaryString($('[name=upfile]', qr.el).files[0]);
+      return fr.readAsBinaryString(file);
     },
-    sysMessage: function(e) {
-      var bb, data, fd, i, key, l, ui8a, upfile, val, x;
-      data = JSON.parse(e.data);
+    sysSend: function(data) {
+      var bb, fd, i, key, l, ui8a, upfile, val, x;
       upfile = data.upfile;
-      l = upfile.length;
-      ui8a = new Uint8Array(l);
-      for (i = 0; 0 <= l ? i < l : i > l; 0 <= l ? i++ : i--) {
-        ui8a[i] = upfile.charCodeAt(i);
+      if (upfile) {
+        l = upfile.length;
+        ui8a = new Uint8Array(l);
+        for (i = 0; 0 <= l ? i < l : i > l; 0 <= l ? i++ : i--) {
+          ui8a[i] = upfile.charCodeAt(i);
+        }
+        bb = new MozBlobBuilder();
+        bb.append(ui8a.buffer);
+        data.upfile = bb.getBlob();
       }
-      bb = new MozBlobBuilder();
-      bb.append(ui8a.buffer);
-      data.upfile = bb.getBlob();
       fd = new FormData();
       for (key in data) {
         val = data[key];
         fd.append(key, val);
       }
       x = new XMLHttpRequest();
+      x.onload = function(e) {
+        return postMessage(this.responseText, '*');
+      };
       x.open('post', 'post', true);
       return x.send(fd);
     },
     sys: function() {
       var c, duration, id, noko, recaptcha, sage, search, thread, url, watch, _, _ref, _ref2;
-      $.bind(window, 'message', qr.sysMessage);
+      unsafeWindow.send = qr.sysSend;
+      $.globalEval(function() {
+        return window.addEventListener('message', (function(e) {
+          var data, origin;
+          data = e.data, origin = e.origin;
+          if (origin === 'http://boards.4chan.org') {
+            return send(data);
+          } else {
+            return parent.postMessage(data, '*');
+          }
+        }), false);
+      });
       return;
       if (recaptcha = $('#recaptcha_response_field')) {
         $.bind(recaptcha, 'keydown', Recaptcha.listener);

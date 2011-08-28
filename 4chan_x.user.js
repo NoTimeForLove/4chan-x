@@ -1515,43 +1515,37 @@
       };
       return fr.readAsBinaryString(file);
     },
-    sysSend: function(data) {
-      var bb, fd, i, key, l, ui8a, upfile, val, x;
-      upfile = data.upfile;
-      if (upfile) {
-        l = upfile.length;
-        ui8a = new Uint8Array(l);
-        for (i = 0; 0 <= l ? i < l : i > l; 0 <= l ? i++ : i--) {
-          ui8a[i] = upfile.charCodeAt(i);
-        }
-        bb = new MozBlobBuilder();
-        bb.append(ui8a.buffer);
-        data.upfile = bb.getBlob();
-      }
-      fd = new FormData();
-      for (key in data) {
-        val = data[key];
-        fd.append(key, val);
-      }
-      x = new XMLHttpRequest();
-      x.onload = function(e) {
-        return postMessage(this.responseText, '*');
-      };
-      x.open('post', 'post', true);
-      return x.send(fd);
-    },
     sys: function() {
       var c, duration, id, noko, recaptcha, sage, search, thread, url, watch, _, _ref, _ref2;
-      unsafeWindow.send = qr.sysSend;
       $.globalEval(function() {
         return window.addEventListener('message', (function(e) {
-          var data, origin;
+          var bb, data, fd, i, key, l, origin, ui8a, upfile, val, x;
           data = e.data, origin = e.origin;
-          if (origin === 'http://boards.4chan.org') {
-            return send(data);
-          } else {
+          if (origin === 'http://sys.4chan.org') {
             return parent.postMessage(data, '*');
           }
+          upfile = data.upfile;
+          if (upfile) {
+            l = upfile.length;
+            ui8a = new Uint8Array(l);
+            for (i = 0; 0 <= l ? i < l : i > l; 0 <= l ? i++ : i--) {
+              ui8a[i] = upfile.charCodeAt(i);
+            }
+            bb = new MozBlobBuilder();
+            bb.append(ui8a.buffer);
+            data.upfile = bb.getBlob();
+          }
+          fd = new FormData();
+          for (key in data) {
+            val = data[key];
+            fd.append(key, val);
+          }
+          x = new XMLHttpRequest();
+          x.onload = function(e) {
+            return postMessage(this.responseText, '*');
+          };
+          x.open('post', 'post', true);
+          return x.send(fd);
         }), false);
       });
       return;

@@ -1226,33 +1226,29 @@ qr =
       postMessage data, '*'
     fr.readAsBinaryString file
 
-  sysSend: (data) ->
-    {upfile} = data
-    if upfile
-      l = upfile.length
-      ui8a = new Uint8Array l
-      for i in [0...l]
-        ui8a[i] = upfile.charCodeAt i
-      bb = new MozBlobBuilder()
-      bb.append ui8a.buffer
-      data.upfile = bb.getBlob()
-    fd = new FormData()
-    for key, val of data
-      fd.append key, val
-    x = new XMLHttpRequest()
-    x.onload = (e) -> postMessage @responseText, '*'
-    x.open 'post', 'post', true
-    x.send fd
-
   sys: ->
-    unsafeWindow.send = qr.sysSend
     $.globalEval ->
       window.addEventListener 'message', ((e) ->
         {data, origin} = e
-        if origin is 'http://boards.4chan.org' #send
-          send data
-        else
-          parent.postMessage data, '*'
+        if origin is 'http://sys.4chan.org'
+          return parent.postMessage data, '*'
+
+        {upfile} = data
+        if upfile
+          l = upfile.length
+          ui8a = new Uint8Array l
+          for i in [0...l]
+            ui8a[i] = upfile.charCodeAt i
+          bb = new MozBlobBuilder()
+          bb.append ui8a.buffer
+          data.upfile = bb.getBlob()
+        fd = new FormData()
+        for key, val of data
+          fd.append key, val
+        x = new XMLHttpRequest()
+        x.onload = (e) -> postMessage @responseText, '*'
+        x.open 'post', 'post', true
+        x.send fd
         ), false
 
     return

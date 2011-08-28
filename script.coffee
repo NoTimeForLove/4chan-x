@@ -1239,7 +1239,7 @@ qr =
           ui8a = new Uint8Array l
           for i in [0...l]
             ui8a[i] = upfile.charCodeAt i
-          bb = new MozBlobBuilder()
+          bb = new (MozBlobBuilder ? WebKitBlobBuilder)()
           bb.append ui8a.buffer
           data.upfile = bb.getBlob()
         fd = new FormData()

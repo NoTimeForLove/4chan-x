@@ -1531,7 +1531,7 @@
             for (i = 0; 0 <= l ? i < l : i > l; 0 <= l ? i++ : i--) {
               ui8a[i] = upfile.charCodeAt(i);
             }
-            bb = new MozBlobBuilder();
+            bb = new (typeof MozBlobBuilder !== "undefined" && MozBlobBuilder !== null ? MozBlobBuilder : WebKitBlobBuilder)();
             bb.append(ui8a.buffer);
             data.upfile = bb.getBlob();
           }

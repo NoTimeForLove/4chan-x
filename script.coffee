@@ -1009,12 +1009,12 @@ qr =
   attachNext: ->
     fileDiv = $.rm $('#files div', qr.el)
     file = fileDiv.firstChild
-    oldFile = $ '#qr_form input[type=file]', qr.el
+    oldFile = $ '#input[type=file]', qr.el
     $.replace oldFile, file
 
   autoPost: ->
     if qr.el and $('#auto', qr.el).checked
-      qr.submit.call $ 'form', qr.el
+      qr.submit()
 
   captchaNode: (e) ->
     return unless qr.el
@@ -1058,23 +1058,21 @@ qr =
       <a id=close title=close>X</a>
       <input type=checkbox id=autohide title=autohide>
       <div class=move>
-        <input class=inputtext type=text name=name value='#{name}' placeholder=Name form=qr_form>
+        <input class=inputtext type=text name=name value='#{name}' placeholder=Name>
         Quick Reply
       </div>
       <div class=autohide>
-        <form action=http://sys.4chan.org/#{g.BOARD}/post method=POST enctype=multipart/form-data target=iframe id=qr_form>
-          <input type=hidden name=resto value=#{THREAD_ID}>
-          <input type=hidden name=recaptcha_challenge_field id=recaptcha_challenge_field>
-          <input type=hidden name=mode value=regist>
-          <div><input class=inputtext type=text name=email value='#{email}' placeholder=E-mail>#{qr.spoiler}</div>
-          <div><input class=inputtext type=text name=sub placeholder=Subject><input type=submit value=#{submitValue} id=com_submit #{submitDisabled}><label><input type=checkbox id=auto>auto</label></div>
-          <div><textarea class=inputtext name=com placeholder=Comment></textarea></div>
-          <div><img src=http://www.google.com/recaptcha/api/image?c=#{qr.challenge}></div>
-          <div><input class=inputtext type=text autocomplete=off placeholder=Verification id=dummy><input type=hidden name=recaptcha_response_field id=recaptcha_response_field><span id=captchas>#{$.get('captchas', []).length} captchas</span></div>
-          <div><input type=file name=upfile accept='#{qr.acceptFiles}'></div>
-        </form>
+        <input type=hidden name=resto value=#{THREAD_ID}>
+        <input type=hidden name=recaptcha_challenge_field id=recaptcha_challenge_field>
+        <input type=hidden name=mode value=regist>
+        <div><input class=inputtext type=text name=email value='#{email}' placeholder=E-mail>#{qr.spoiler}</div>
+        <div><input class=inputtext type=text name=sub placeholder=Subject><button id=com_submit #{submitDisabled}>#{submitValue}</button><label><input type=checkbox id=auto>auto</label></div>
+        <div><textarea class=inputtext name=com placeholder=Comment></textarea></div>
+        <div><img src=http://www.google.com/recaptcha/api/image?c=#{qr.challenge}></div>
+        <div><input class=inputtext type=text autocomplete=off placeholder=Verification id=dummy><input type=hidden name=recaptcha_response_field id=recaptcha_response_field><span id=captchas>#{$.get('captchas', []).length} captchas</span></div>
+        <div><input type=file name=upfile accept='#{qr.acceptFiles}'></div>
         <div id=files></div>
-        <div><input class=inputtext type=password name=pwd value='#{pwd}' placeholder=Password form=qr_form maxlength=8><a id=attach>attach another file</a></div>
+        <div><input class=inputtext type=password name=pwd value='#{pwd}' placeholder=Password maxlength=8><a id=attach>attach another file</a></div>
       </div>
       <a id=error class=error></a>
       "
@@ -1083,7 +1081,7 @@ qr =
     $.bind $('input[name=name]',   qr.el), 'mousedown', (e) -> e.stopPropagation()
     $.bind $('input[name=upfile]', qr.el), 'change', qr.validateFileSize
     $.bind $('#close',             qr.el), 'click', qr.close
-    $.bind $('form',               qr.el), 'submit', qr.submit
+    $.bind $('#com_submit',        qr.el), 'click', qr.submit
     $.bind $('#attach',            qr.el), 'click', qr.attach
     $.bind $('img',                qr.el), 'click', Recaptcha.reload
     $.bind $('#dummy',             qr.el), 'keydown', Recaptcha.listener
@@ -1192,8 +1190,7 @@ qr =
     newFile = $.el 'input', type: 'file', name: 'upfile', accept: qr.acceptFiles
     $.replace oldFile, newFile
 
-  submit: (e) ->
-    e.preventDefault()
+  submit: ->
     if msg = qr.postInvalid()
       alert msg
       if msg is 'You forgot to type in the verification.'
@@ -1211,7 +1208,7 @@ qr =
 
     $('#error', qr.el).textContent = ''
     $('#autohide', qr.el).checked = true if conf['Auto Hide QR']
-    qr.sage = /sage/i.test $('input[name=email]', @).value
+    qr.sage = /sage/i.test $('input[name=email]', qr.el).value
 
     data = {}
     for el in $$ '[name]', qr.el

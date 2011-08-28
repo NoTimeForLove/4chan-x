@@ -53,6 +53,7 @@ config =
     '#http://anonym.to/?'
   ].join '\n'
   time: '%m/%d/%y(%a)%H:%M'
+  backlink: '>>%id'
   hotkeys:
     close:           'Esc'
     spoiler:         'ctrl+s'
@@ -795,7 +796,7 @@ options =
       <div class='reply dialog'>
         <div id=optionsbar>
           <div id=floaty>
-            <label for=main_tab>main</label> | <label for=flavors_tab>sauce</label> | <label for=time_tab>time</label> | <label for=keybinds_tab>keybinds</label>
+            <label for=main_tab>main</label> | <label for=flavors_tab>sauce</label> | <label for=rice_tab>rice</label> | <label for=keybinds_tab>keybinds</label>
           </div>
           <div id=credits>
             <a href=http://aeosynth.github.com/4chan-x/>4chan X</a> |
@@ -810,37 +811,19 @@ options =
           <div id=main></div>
           <input type=radio name=tab hidden id=flavors_tab>
           <textarea name=flavors id=flavors>#{conf['flavors']}</textarea>
-          <input type=radio name=tab hidden id=time_tab>
-          <div id=time>
-            <div><input type=text name=time value='#{conf['time']}'> <span id=timePreview></span></div>
-            <table>
-              <caption>Format specifiers <a href=http://en.wikipedia.org/wiki/Date_%28Unix%29#Formatting>(source)</a></caption>
-              <tbody>
-                <tr><th>Specifier</th><th>Description</th><th>Values/Example</th></tr>
-                <tr><th colspan=3>Year</th></tr>
-                <tr><td>%y</td><td>two digit year</td><td>00-99</td></tr>
-
-                <tr><th colspan=3>Month</th></tr>
-                <tr><td>%b</td><td>month, abbreviated</td><td>Jun</td></tr>
-                <tr><td>%B</td><td>month, full length</td><td>June</td></tr>
-                <tr><td>%m</td><td>month, zero padded</td><td>06</td></tr>
-
-                <tr><th colspan=3>Day</th></tr>
-                <tr><td>%a</td><td>weekday, abbreviated</td><td>Sat</td></tr>
-                <tr><td>%A</td><td>weekday, full</td><td>Saturday</td></tr>
-                <tr><td>%d</td><td>day of the month, zero padded</td><td>03</td></tr>
-                <tr><td>%e</td><td>day of the month</td><td>3</td></tr>
-
-                <tr><th colspan=3>Time</th></tr>
-                <tr><td>%H</td><td>hour (24 hour clock) zero padded</td><td>13</td></tr>
-                <tr><td>%l (lowercase L)</td><td>hour (12 hour clock)</td><td>1</td></tr>
-                <tr><td>%I (uppercase i)</td><td>hour (12 hour clock) zero padded</td><td>01</td></tr>
-                <tr><td>%k</td><td>hour (24 hour clock)</td><td>13</td></tr>
-                <tr><td>%M</td><td>minutes, zero padded</td><td>54</td></tr>
-                <tr><td>%p</td><td>upper case AM or PM</td><td>PM</td></tr>
-                <tr><td>%P</td><td>lower case am or pm</td><td>pm</td></tr>
-              </tbody>
-            </table>
+          <input type=radio name=tab hidden id=rice_tab>
+          <div id=rice>
+            <div><input type=text name=backlink value='#{conf['backlink']}'> : <span id=backlinkPreview></span></div>
+            <div><input type=text name=time value='#{conf['time']}'> : <span id=timePreview></span></div>
+            <div>Supported <a href=http://en.wikipedia.org/wiki/Date_%28Unix%29#Formatting>format specifiers</a>:
+              <ul>
+                <li>Day: %a, %A, %d, %e</li>
+                <li>Month: %m, %b, %B</li>
+                <li>Year: %y, %Y</li>
+                <li>Hour: %k, %H, %l (lowercase L), %I (uppercase i)</li>
+                <li>Month: %M, %p, %P</li>
+              </ul>
+            </div>
           </div>
           <input type=radio name=tab hidden id=keybinds_tab>
           <div id=keybinds>
@@ -896,6 +879,7 @@ options =
 
     $.bind $('#flavors', dialog), 'change', $.cb.value
     $.bind $('input[name=time]', dialog), 'keyup', options.time
+    $.bind $('input[name=backlink]', dialog), 'keyup', options.backlink
     for input in $$ '#keybinds input', dialog
       input.value = conf[input.name]
       $.bind input, 'keydown', options.keybind
@@ -911,6 +895,7 @@ options =
     $.append d.body, overlay
 
     options.time.call $('input[name=time]', dialog)
+    options.backlink.call $('input[name=backlink]', dialog)
 
     $.bind overlay, 'click', -> $.rm overlay
     $.bind dialog.firstElementChild, 'click', (e) -> e.stopPropagation()
@@ -935,6 +920,10 @@ options =
     Time.foo()
     Time.date = new Date()
     $('#timePreview').textContent = Time.funk Time
+  backlink: (e) ->
+    $.set 'backlink', @value
+    conf['backlink'] = @value
+    $('#backlinkPreview').textContent = conf['backlink'].replace /%id/, '123456789'
 
 cooldown =
   #TODO merge into qr
@@ -1700,6 +1689,7 @@ Time =
     p: -> if Time.date.getHours() < 12 then 'AM' else 'PM'
     P: -> if Time.date.getHours() < 12 then 'am' else 'pm'
     y: -> Time.date.getFullYear() - 2000
+    Y: -> Time.date.getFullYear()
 
 getTitle = (thread) ->
   el = $ 'span.filetitle', thread
@@ -1733,7 +1723,7 @@ quoteBacklink =
         link = $.el 'a',
           href: "##{id}"
           className: 'backlink'
-          textContent: ">>#{id}"
+          textContent: conf['backlink'].replace /%id/, id
         if conf['Quote Preview']
           $.bind link, 'mouseover', quotePreview.mouseover
           $.bind link, 'mousemove', ui.hover
@@ -1940,12 +1930,12 @@ unread =
     d.title = d.title.replace /\d+/, unread.replies.length
 
 Favicon =
-  dead: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEUAAAAAAAD/AAA9+90tAAAAAXRSTlMAQObYZgAAADtJREFUCB0FwUERxEAIALDszMG730PNSkBEBSECoU0AEPe0mly5NWprRUcDQAdn68qtkVsj3/84z++CD5u7CsnoBJoaAAAAAElFTkSuQmCC'
-  deadHalo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAWUlEQVR4XrWSAQoAIAgD/f+njSApsTqjGoTQ5oGWPJMOOs60CzsWwIwz1I4PUIYh+WYEMGQ6I/txw91kP4oA9BdwhKp1My4xQq6e8Q9ANgDJjOErewFiNesV2uGSfGv1/HYAAAAASUVORK5CYII='
+  dead: 'data:image/gif;base64,R0lGODlhEAAQAKECAAAAAP8AAP///////yH5BAEKAAIALAAAAAAQABAAAAIvlI+pq+D9DAgUoFkPDlbs7lFZKIJOJJ3MyraoB14jFpOcVMpzrnF3OKlZYsMWowAAOw=='
+  deadHalo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABF0lEQVQ4jZ2SgW7DIAxEUWiylbULAUKaTNP+/ys7O3vpaBQ0aUgnkH13MraNMcYKWsGr4MzdCU6CBpyIlZwW7Zp4E3hBEAyCK8QOnIkNcDwazRmnwXtxxnG8WWuVeAFeYyUHI9WadyK/kJNSmpUkRknfRxzVqkEvWCqEMec8VXIL2oMK/jLYVaDNiPfdOfzCcw8iWvNCh5NgprQbhB5EYguchEa16zwdo8kQpwODiVyG69A+DHQsc1GiClLTNLn8QgjhQ79VGnSU89ysH5NZBfs4/blui6RrOVRG9em9/6rkBrTrmoZ/GAS0q4t/kIpbmxZjXCo5v1XQMs+wbRh3okxF2uUCmrWJlmY4NqvnvhBzvMucQ2O/AfDALFHq2FW+AAAAAElFTkSuQmCC'
   default: $('link[rel="shortcut icon"]', d.head)?.href or '' #no favicon in `post successful` page
   empty: 'data:image/gif;base64,R0lGODlhEAAQAJEAAAAAAP///9vb2////yH5BAEAAAMALAAAAAAQABAAAAIvnI+pq+D9DBAUoFkPFnbs7lFZKIJOJJ3MyraoB14jFpOcVMpzrnF3OKlZYsMWowAAOw=='
-  haloSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAZklEQVR4XrWRQQoAIQwD+6L97j7Ih9WTQQxhDqJQCk4Mranuvqod6LgwawSqSuUmWSPw/UNlJlnDAmA2ARjABLYj8ZyCzJHHqOg+GdAKZmKPIQUzuYrxicHqEgHzP9g7M0+hj45sAnRWxtPj3zSPAAAAAElFTkSuQmCC'
-  haloNSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAADFBMVEUAAABmzDP///8AAABet0i+AAAAAXRSTlMAQObYZgAAAExJREFUeF4tyrENgDAMAMFXKuQswQLBG3mOlBnFS1gwDfIYLpEivvjq2MlqjmYvYg5jWEzCwtDSQlwcXKCVLrpFbvLvvSf9uZJ2HusDtJAY7Tkn1oYAAAAASUVORK5CYII='
+  haloSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABBElEQVQ4jZ2SAW6DMAxFowHtmtECIW0AaVfYdXegHqy1o5cqyogqDekpYP9vGTvGGNMInfApnDgPQit8QEss13R4Y+JLGAUnTMIZ4QFOxCY0Ix7NGavBR/bI9w1RD/p+KzQOr7lo4Of3/gJBQKSEiuaiBQZhqwiuSiW34f3bwbsCZQc6jPlRPHu/UORnvObIhL2w0tqCYICZ2IbG41Fv3KdNk0YYdgoEcmlDFu+rgLa6Fr/gIWTxNVthly7SuVxVJl534gFPvEh6LafKqr6VSm7CG6+p+0cBhzdWGZMoPxnaUsmNqYOOfbp0wzg9bSq+yDk8cYgNw7DcrIGzJ2Z5z3MWT/MEQc89+KdYnT8AAAAASUVORK5CYII='
+  haloNSFW: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABBElEQVQ4jZ2SAW6DMAxFowHtmtECIW0AaafYnXba3qm1o5cqyogqDekpYP9vGTvGGNMInfApnDgPQit8QEss13R4Y+JLGAUnTMIZ4QFOxCY0Ix7NGavBR/bI9w1RD/p+KzQOr7lo4Pf+8wJBQKSEiuaiBQZhqwiuSiW34f3bwbsCZQc6jPlRPHu/UORnvObIhL2w0tqCYICZ2IbG41Fv3KdNk0YYdgoEcmlDFu+rgLa6Fr/gIWTxNVthly7SuVxVJl534gFPvEh6LafKqr6VSm7CG6+p+0cBhzdWGZMoPxnaUsmNqYOOfbp0wzg9bSq+yDk8cYgNw7DcrIGzJ2Z5z3MWT/MErJI4gFNYYkEAAAAASUVORK5CYII='
 
   update: ->
     l = unread.replies.length

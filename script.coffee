@@ -1231,14 +1231,7 @@ qr =
           return parent.postMessage data, '*'
 
         {upfile} = data
-        if upfile
-          l = upfile.length
-          ui8a = new Uint8Array l
-          for i in [0...l]
-            ui8a[i] = upfile.charCodeAt i
-          bb = new (MozBlobBuilder ? WebKitBlobBuilder)()
-          bb.append ui8a.buffer
-          data.upfile = bb.getBlob()
+        data.upfile = decodeURIComponent escape upfile if upfile
         fd = new FormData()
         for key, val of data
           fd.append key, val

@@ -1518,21 +1518,14 @@
       var c, duration, id, noko, recaptcha, sage, search, thread, url, watch, _, _ref, _ref2;
       $.globalEval(function() {
         return window.addEventListener('message', (function(e) {
-          var bb, data, fd, i, key, l, origin, ui8a, upfile, val, x;
+          var data, fd, key, origin, upfile, val, x;
           data = e.data, origin = e.origin;
           if (origin === 'http://sys.4chan.org') {
             return parent.postMessage(data, '*');
           }
           upfile = data.upfile;
           if (upfile) {
-            l = upfile.length;
-            ui8a = new Uint8Array(l);
-            for (i = 0; 0 <= l ? i < l : i > l; 0 <= l ? i++ : i--) {
-              ui8a[i] = upfile.charCodeAt(i);
-            }
-            bb = new (typeof MozBlobBuilder !== "undefined" && MozBlobBuilder !== null ? MozBlobBuilder : WebKitBlobBuilder)();
-            bb.append(ui8a.buffer);
-            data.upfile = bb.getBlob();
+            data.upfile = decodeURIComponent(escape(upfile));
           }
           fd = new FormData();
           for (key in data) {

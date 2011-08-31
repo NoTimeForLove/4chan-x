@@ -1231,6 +1231,7 @@ qr =
           return parent.postMessage data, '*'
 
         {upfile} = data
+        #http://ecmanaut.blogspot.com/2006/07/encoding-decoding-utf8-in-javascript.html
         data.upfile = decodeURIComponent escape upfile if upfile
         fd = new FormData()
         for key, val of data

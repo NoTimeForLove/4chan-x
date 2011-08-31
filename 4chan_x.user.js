@@ -1828,7 +1828,7 @@
             input.disabled = true;
             input.value = 404;
           }
-          d.title = d.title.match(/.+- /)[0] + 404;
+          d.title = d.title.match(/.+-/)[0] + ' 404';
           g.dead = true;
           Favicon.update();
           return;
@@ -2221,7 +2221,7 @@
           if (conf['Quote Inline']) {
             $.bind(link, 'click', quoteInline.toggle);
           }
-          if (!(container = $('.container', el))) {
+          if (!((container = $('.container', el)) && container.parentNode === el)) {
             container = $.el('span', {
               className: 'container'
             });

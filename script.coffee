@@ -1483,7 +1483,8 @@ updater =
         for input in $$ '#com_submit'
           input.disabled = true
           input.value = 404
-        d.title = d.title.match(/.+- /)[0] + 404
+        # XXX trailing spaces are trimmed
+        d.title = d.title.match(/.+-/)[0] + ' 404'
         g.dead = true
         Favicon.update()
         return
@@ -1756,7 +1757,7 @@ quoteBacklink =
           $.bind link, 'mouseout',  quotePreview.mouseout
         if conf['Quote Inline']
           $.bind link, 'click', quoteInline.toggle
-        unless container = $ '.container', el
+        unless (container = $ '.container', el) and container.parentNode is el
           container = $.el 'span', className: 'container'
           root = $('.reportbutton', el) or $('span[id^=no]', el)
           $.after root, container

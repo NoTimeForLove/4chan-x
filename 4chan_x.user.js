@@ -1512,21 +1512,28 @@
         data.upfile = e.target.result;
         return postMessage(data, '*');
       };
-      return fr.readAsBinaryString(file);
+      return fr.readAsDataURL(file);
     },
     sys: function() {
       var c, duration, id, noko, recaptcha, sage, search, thread, url, watch, _, _ref, _ref2;
       $.globalEval(function() {
         return window.addEventListener('message', (function(e) {
-          var data, fd, key, origin, upfile, val, x;
+          var b64, bb, data, fd, i, key, l, origin, s, ui8a, upfile, val, x;
           data = e.data, origin = e.origin;
           if (origin === 'http://sys.4chan.org') {
             return parent.postMessage(data, '*');
           }
           upfile = data.upfile;
-          if (upfile) {
-            data.upfile = decodeURIComponent(escape(upfile));
+          b64 = upfile.split(',')[1];
+          s = atob(b64);
+          l = s.length;
+          ui8a = new Uint8Array(l);
+          for (i = 0; 0 <= l ? i < l : i > l; 0 <= l ? i++ : i--) {
+            ui8a[i] = s.charCodeAt(i);
           }
+          bb = new (window.MozBlobBuilder || window.WebKitBlobBuilder)();
+          bb.append(ui8a.buffer);
+          data.upfile = bb.getBlob();
           fd = new FormData();
           for (key in data) {
             val = data[key];

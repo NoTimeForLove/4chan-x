@@ -1221,7 +1221,7 @@ qr =
     fr.onload = (e) ->
       data.upfile = e.target.result
       postMessage data, '*'
-    fr.readAsBinaryString file
+    fr.readAsDataURL file
 
   sys: ->
     $.globalEval ->
@@ -1231,8 +1231,15 @@ qr =
           return parent.postMessage data, '*'
 
         {upfile} = data
-        #http://ecmanaut.blogspot.com/2006/07/encoding-decoding-utf8-in-javascript.html
-        data.upfile = decodeURIComponent escape upfile if upfile
+        b64 = upfile.split(',')[1]
+        s = atob b64
+        l = s.length
+        ui8a = new Uint8Array(l)
+        for i in [0...l]
+          ui8a[i] = s.charCodeAt i
+        bb = new (window.MozBlobBuilder or window.WebKitBlobBuilder)()
+        bb.append ui8a.buffer
+        data.upfile = bb.getBlob()
         fd = new FormData()
         for key, val of data
           fd.append key, val
